@@ -2,6 +2,29 @@
  
 class ParticleManager {
 
+    /**
+     * General Notes
+     * 
+     * Units:
+     * time: seconds
+     * distance: each coordinate is a meter ig?
+     * 
+     * Coordinate Space:
+     * bottom left of GUI is (lowerBoundX, lowerBoundY)
+     * top right of GUI is (upperBoundX, upperBoundY)
+     * 
+     * Positions and Velocites:
+     * x position of particle i denoted as positions[2 * i]
+     * y position of particle i denoted as positions[2 * i + 1]
+     * 
+     * x velocity of particle i denoted as velocites[2 * i]
+     * y velocity of particle i denoted as velocites[2 * i + 1]
+     * 
+     * Densities
+     * Used as a buffer to precomute values to reduce recalcualations
+     * Density of particle i denoted as density[i]
+    */
+
 private:
     float* positions;
     float* velocities;
