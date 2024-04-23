@@ -1,14 +1,20 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <ParticleManager.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
+void updateCircleCenters(std::vector<float>& vertices, ParticleManager& particleManager);
 
-// settings
 const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_HEIGHT = 800;
+const float CIRCLE_RADIUS = 0.05f;
+const unsigned int numParticles = 1000;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -23,42 +29,17 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
 
-
-// const char* circleVertexShaderSource = "#version 330 core\n"
-
-//     "vec3 Circle(vec2 uv, vec2 p, float r, float blir)"
-
-
-//     "void main() {\n"
-
-//     "}\n\0";
-
-const char* circleFragmentShaderSource = "#version 330 core\n"
-
-    "float circle(float radius, vec2 pos)"
-
-
-    "void main() {\n"
-
-    "}\n\0";
-
-
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "FluidSim", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Random Circles", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -68,22 +49,15 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
-    // check for shader compile errors
     int success;
     char infoLog[512];
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -92,23 +66,19 @@ int main()
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-    // fragment shader
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
-    // check for shader compile errors
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-    // link shaders
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-    // check for linking errors
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
@@ -117,87 +87,117 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
-    }; 
+    std::vector<float> vertices;
+    std::srand(static_cast<unsigned int>(std::time(nullptr))); // Seed for random number generation
+
+    // const int numCircles = 100; // Define the number of circles
+    // for (int i = 0; i < numCircles; ++i)
+    // {
+    //     float centerX = static_cast<float>(std::rand()) / RAND_MAX * 2.0f - 1.0f; // Random x-coordinate in range [-1, 1]
+    //     float centerY = static_cast<float>(std::rand()) / RAND_MAX * 2.0f - 1.0f; // Random y-coordinate in range [-1, 1]
+
+    //     for (int j = 0; j < 360; ++j)
+    //     {
+    //         float angle = static_cast<float>(j) * (2.0f * 3.14159265358979323846f) / 360;
+    //         float x = CIRCLE_RADIUS * std::cos(angle) + centerX;
+    //         float y = CIRCLE_RADIUS * std::sin(angle) + centerY;
+    //         vertices.push_back(x);
+    //         vertices.push_back(y);
+    //         vertices.push_back(0.0f);
+    //     }
+    // }
+
+    ParticleManager particleManager(numParticles);
+
+    for (int i = 0; i < numParticles; ++i)
+    {
+        float centerX = (particleManager.getPositions()[2 * i] + particleManager.getLowerBoundX()) / (particleManager.getUpperBoundX() + particleManager.getLowerBoundX()) * 2.0f - 1.0f;
+        float centerY = (particleManager.getPositions()[2 * i + 1] + particleManager.getLowerBoundY()) / (particleManager.getUpperBoundY() + particleManager.getLowerBoundY()) * 2.0f - 1.0f;
+
+        for (int j = 0; j < 360; ++j)
+        {
+            float angle = static_cast<float>(j) * (2.0f * 3.14159265358979323846f) / 360;
+            float x = CIRCLE_RADIUS * std::cos(angle) + centerX;
+            float y = CIRCLE_RADIUS * std::sin(angle) + centerY;
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(0.0f);
+        }
+    }
+
 
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0); 
 
+    double lastTime = glfwGetTime();
 
-    // uncomment this call to draw in wireframe polygons.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    // render loop
-    // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
-        processInput(window);
+        double currentTime = glfwGetTime(); 
+ 
+        particleManager.step(currentTime - lastTime); //time step based on framerate
 
-        // render
-        // ------
+        updateCircleCenters(vertices, particleManager);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        lastTime = currentTime;
+
+
+        processInput(window);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        // draw our first triangle
         glUseProgram(shaderProgram);
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        // glBindVertexArray(0); // no need to unbind it every time 
- 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+        glBindVertexArray(VAO); 
+        
+        for (int i = 0; i < numParticles; ++i)
+            glDrawArrays(GL_LINE_LOOP, i * 360, 360); // Draw each circle separately
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(shaderProgram);
-
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void updateCircleCenters(std::vector<float>& vertices, ParticleManager& particleManager)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    int numCircles = particleManager.getNumParticles();
+    for (int i = 0; i < numCircles; ++i)
+    {
+        float centerX = (particleManager.getPositions()[2 * i] + particleManager.getLowerBoundX()) / (particleManager.getUpperBoundX() + particleManager.getLowerBoundX()) * 2.0f - 1.0f;
+        float centerY = (particleManager.getPositions()[2 * i + 1] + particleManager.getLowerBoundY()) / (particleManager.getUpperBoundY() + particleManager.getLowerBoundY()) * 2.0f - 1.0f;
+
+        for (int j = 0; j < 360; ++j)
+        {
+            float angle = static_cast<float>(j) * (2.0f * 3.14159265358979323846f) / 360;
+            float x = CIRCLE_RADIUS * std::cos(angle) + centerX;
+            float y = CIRCLE_RADIUS * std::sin(angle) + centerY;
+            vertices[i * 360 * 3 + j * 3] = x;
+            vertices[i * 360 * 3 + j * 3 + 1] = y;
+        }
+    }
 }
