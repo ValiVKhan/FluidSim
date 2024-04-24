@@ -13,8 +13,8 @@ void updateCircleCenters(std::vector<float>& vertices, ParticleManager& particle
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
-const float CIRCLE_RADIUS = 0.05f;
-const unsigned int numParticles = 1000;
+const float CIRCLE_RADIUS = 0.01;
+const unsigned int numParticles = 2000;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -26,7 +26,7 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vec4(0.6f, 1.0f, 1.0f, 1.0f);\n"
     "}\n\0";
 
 int main()
@@ -39,7 +39,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Random Circles", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Fluid Sim", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -143,14 +143,18 @@ int main()
     {
         double currentTime = glfwGetTime(); 
  
-        particleManager.step(currentTime - lastTime); //time step based on framerate
+        // if (currentTime - lastTime > 5) {
+            // particleManager.step(currentTime - lastTime); //time step based on framerate?
+            particleManager.step(0.5); //time step based on framerate
 
-        updateCircleCenters(vertices, particleManager);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        lastTime = currentTime;
+            updateCircleCenters(vertices, particleManager);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+            lastTime = currentTime;
+        // }
 
 
         processInput(window);
