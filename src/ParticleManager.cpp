@@ -200,6 +200,10 @@ float* ParticleManager::getPositions() {
     return positions;
 }
 
+float* ParticleManager::getVelocities() {
+    return velocities;
+}
+
 float ParticleManager::getLowerBoundX() {
     return lowerBoundX;
 }

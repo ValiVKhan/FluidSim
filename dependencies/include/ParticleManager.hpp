@@ -95,6 +95,7 @@ public:
 
     /* Do Not Modify Returned Pointer or Positions */
     float* getPositions();
+    float* getVelocities();
 
 
     float getLowerBoundX();
@@ -103,6 +104,7 @@ public:
     float getUpperBoundY();
 
     int getNumParticles();
+
 
 
 };
