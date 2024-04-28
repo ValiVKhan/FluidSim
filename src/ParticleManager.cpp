@@ -11,10 +11,16 @@ ParticleManager::ParticleManager(int numParticles) {
     velocities = new float[numParticles * 2]();
     densities = new float[numParticles];
 
+    // lowerBoundX = -40;
+    // upperBoundX = 40;
+    // lowerBoundY = -40;
+    // upperBoundY = 40;
+
+
     lowerBoundX = 0;
-    upperBoundX = 100;
+    upperBoundX = 80;
     lowerBoundY = 0;
-    upperBoundY = 100;
+    upperBoundY = 80;
 
     targetDensity = numParticles / ((upperBoundX - lowerBoundX) * (upperBoundY - lowerBoundY));
 
@@ -75,6 +81,9 @@ void ParticleManager::step(float delta) {
 
     for (int i = 0; i < range; i++) {
         positions[i] += velocities[i] * halfStep;
+        // printf("PRE VELOCITIES (%f)\n", velocities[i]);
+        velocities[i] *= 0.995f;
+        // printf("POST VELOCITIES (%f)\n", velocities[i]);
     }
 
     handleCollisionsBasic();
@@ -199,6 +208,10 @@ void ParticleManager::precomputeDensities() {
 float* ParticleManager::getPositions() {
     return positions;
 }
+float* ParticleManager::getVelocities() {
+    return velocities;
+}
+
 
 float ParticleManager::getLowerBoundX() {
     return lowerBoundX;

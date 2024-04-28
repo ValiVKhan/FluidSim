@@ -5,7 +5,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include <ParticleManager.hpp>
+#include <Wall.hpp>
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -137,6 +138,10 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindVertexArray(0); 
 
+    Wall wall(48, 48, 72, 72, particleManager);
+
+    Wall wallTwo(8, 72, 32, 48, particleManager);
+
     double lastTime = glfwGetTime();
 
     while (!glfwWindowShouldClose(window))
@@ -146,6 +151,9 @@ int main()
         // if (currentTime - lastTime > 5) {
             // particleManager.step(currentTime - lastTime); //time step based on framerate?
             particleManager.step(0.5); //time step based on framerate
+            wall.HandleWallCollision(particleManager);
+            wallTwo.HandleWallCollision(particleManager);
+            
 
 
             updateCircleCenters(vertices, particleManager);
@@ -165,6 +173,8 @@ int main()
         
         for (int i = 0; i < numParticles; ++i)
             glDrawArrays(GL_LINE_LOOP, i * 360, 360); // Draw each circle separately
+        wall.render();
+        wallTwo.render();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

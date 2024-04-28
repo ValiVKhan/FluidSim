@@ -1,5 +1,5 @@
-#define GRAVITY_ACCELERATION -0.0f
-#define SMOOTHING_RADIUS 1.0f //idk bro, this doesnt seem like alot
+#define GRAVITY_ACCELERATION -0.01f
+#define SMOOTHING_RADIUS 2.0f //idk bro, this doesnt seem like alot
 #define SMOOTHING_RADIUS_POW_6 64.0f
 #define PI 3.14159f
 #define IDEAL_GAS_CONSTANT 100.0f //ideal gas constant? literally zero clue what this should be
@@ -41,6 +41,8 @@ private:
     float upperBoundY;
     float particleMass;
     float targetDensity;
+    //float render coordinateX
+
 
     /* Pre Computes the Density for use in later calculations*/
     void precomputeDensities();
@@ -95,6 +97,7 @@ public:
 
     /* Do Not Modify Returned Pointer or Positions */
     float* getPositions();
+    float* getVelocities();
 
 
     float getLowerBoundX();
