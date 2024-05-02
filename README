@@ -8,6 +8,6 @@ in the FluidSim directory. Once compiled and in a new terminal tab go to the
 FluidSim directory again and run ./app
 
 Or compile using the compile.sh file while in the FluidSim directory, then run
-using ./app
+using ./app. If you are unable to execute compile.sh then run chmod +x ./compile.sh
 
 **NOTE** this may only work on mac (m1pro) since the libraries are pre compiled
