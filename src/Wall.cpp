@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <glad/glad.h>
+#include <vector>
 
 // constructor
 Wall::Wall(float startingX, float startingY, float endingX, float endingY, ParticleManager particleManager) {
