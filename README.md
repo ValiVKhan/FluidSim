@@ -48,6 +48,3 @@ Push to the branch (git push origin feature-branch).
 Open a pull request.
 License
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-Contact
-For questions or suggestions, feel free to open an issue or contact the project maintainer directly at valivkhan@example.com
